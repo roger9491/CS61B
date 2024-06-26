@@ -1,5 +1,7 @@
 package game2048;
 
+import static org.junit.Assert.fail;
+
 import java.util.Formatter;
 import java.util.Observable;
 
@@ -110,9 +112,42 @@ public class Model extends Observable {
         boolean changed;
         changed = false;
 
+        System.out.println("before: ");
+        printlnForTest();
+
+
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
+
+        /* 
+         * NORTH: 右邊
+         * SOUTH: 左邊
+         * 
+         * (未測試)
+         * WEST: 上面
+         * EAST: 下面
+         */
+        int addScore = 0;
+        switch (side) {
+            case NORTH:
+                changed = northAction();
+                break;
+            case SOUTH:
+                changed = southAction();
+                break;
+            case WEST:
+                changed = westAction();
+                break;
+            case EAST:
+                changed = eastAction();
+                break;
+            default:
+                break;
+        }
+
+        System.out.println("after: ");
+        printlnForTest();
 
         checkGameOver();
         if (changed) {
@@ -120,6 +155,273 @@ public class Model extends Observable {
         }
         return changed;
     }
+
+
+    private boolean northAction() {
+        int bSize = this.board.size();
+        int score = 0;
+        boolean change = false;
+
+        for(int row = 0; row < bSize; row++) {
+
+            int currentCol = bSize - 1;
+            while (currentCol >= 0) {
+                if (tile(row, currentCol) == null) {
+                    int nextOneValue = nextOneIndexForNorth(currentCol - 1, row);
+                    if (nextOneValue == -1) break;
+
+                    int nextTwoValue = nextOneIndexForNorth(nextOneValue - 1, row);
+
+                    if (nextTwoValue == -1) {
+                        this.board.move(row, currentCol, tile(row, nextOneValue));
+                        change = true;
+                        break;
+                    } else {
+                        if (tile(row, nextOneValue).value() == tile(row, nextTwoValue).value()) {
+                            this.board.move(row, currentCol, tile(row, nextOneValue));
+                            this.board.move(row, currentCol, tile(row, nextTwoValue));
+                            score += tile(row, currentCol).value();
+                            change = true;
+                        } else {
+                            this.board.move(row, currentCol, tile(row, nextOneValue));
+                            this.board.move(row, currentCol - 1, tile(row, nextTwoValue));
+                            change = true;
+                        }
+                    }
+                } else {
+                    int nextOneValue = nextOneIndexForNorth(currentCol - 1, row);
+                    if (nextOneValue == -1) break;
+
+                    if (tile(row, currentCol).value() == tile(row, nextOneValue).value()) {
+                        this.board.move(row, currentCol, tile(row, nextOneValue));
+                        score += tile(row, currentCol).value();
+                        change = true;
+                    } else {
+                        this.board.move(row, currentCol - 1, tile(row, nextOneValue));
+                        change = true;
+                    }
+
+                }
+
+                currentCol -= 1;
+            }
+            System.out.println("row: " + row);
+            printlnForTest();
+        }
+
+        this.score += score;
+        return change;
+    }
+
+    private boolean southAction() {
+        int bSize = this.board.size();
+        int score = 0;
+        boolean change = false;
+
+        for(int row = 0; row < bSize; row++) {
+
+            int currentCol = 0;
+            while (currentCol < bSize) {
+                if (tile(row, currentCol) == null) {
+                    int nextOneValue = nextOneIndexForSouth(currentCol + 1, row);
+                    if (nextOneValue == -1) break;
+
+                    int nextTwoValue = nextOneIndexForSouth(nextOneValue + 1, row);
+
+                    if (nextTwoValue == -1) {
+                        this.board.move(row, currentCol, tile(row, nextOneValue));
+                        change = true;
+                        break;
+                    } else {
+                        if (tile(row, nextOneValue).value() == tile(row, nextTwoValue).value()) {
+                            this.board.move(row, currentCol, tile(row, nextOneValue));
+                            this.board.move(row, currentCol, tile(row, nextTwoValue));
+                            score += tile(row, currentCol).value();
+                            change = true;
+                        } else {
+                            this.board.move(row, currentCol, tile(row, nextOneValue));
+                            this.board.move(row, currentCol + 1, tile(row, nextTwoValue));
+                            change = true;
+                        }
+                    }
+                } else {
+                    int nextOneValue = nextOneIndexForSouth(currentCol + 1, row);
+                    if (nextOneValue == -1) break;
+
+                    if (tile(row, currentCol).value() == tile(row, nextOneValue).value()) {
+                        this.board.move(row, currentCol, tile(row, nextOneValue));
+                        score += tile(row, currentCol).value();
+                        change = true;
+                    } else {
+                        this.board.move(row, currentCol + 1, tile(row, nextOneValue));
+                        change = true;
+                    }
+
+                }
+
+                currentCol += 1;
+            }
+            // System.out.println("row: " + row);
+            // printlnForTest();
+        }
+
+        this.score += score;
+        return change;
+    }
+
+    private boolean westAction() {
+        int bSize = this.board.size();
+        int score = 0;
+        boolean change = false;
+
+        for(int col = 0; col < bSize; col++) {
+
+            int currentRow = 0;
+            while (currentRow < bSize) {
+                if (tile(currentRow, col) == null) {
+                    int nextOneValue = nextOneIndexForWest(currentRow + 1, col);
+                    if (nextOneValue == -1) break;
+
+                    int nextTwoValue = nextOneIndexForWest(nextOneValue + 1, col);
+
+                    if (nextTwoValue == -1) {
+                        this.board.move(currentRow, col, tile(nextOneValue, col));
+                        change = true;
+                        break;
+                    } else {
+                        if (tile(nextOneValue, col).value() == tile(nextTwoValue, col).value()) {
+                            this.board.move(currentRow, col, tile(nextOneValue, col));
+                            this.board.move(currentRow, col, tile(nextTwoValue, col));
+                            score += tile(currentRow, col).value();
+                            change = true;
+                        } else {
+                            this.board.move(currentRow, col, tile(nextOneValue, col));
+                            this.board.move(currentRow + 1, col, tile(nextTwoValue, col));
+                            change = true;
+                        }
+                    }
+                } else {
+                    int nextOneValue = nextOneIndexForWest(currentRow + 1, col);
+                    if (nextOneValue == -1) break;
+
+                    if (tile(currentRow, col).value() == tile(nextOneValue, col).value()) {
+                        this.board.move(currentRow, col, tile(nextOneValue, col));
+                        score += tile(currentRow, col).value();
+                        change = true;
+                    } else {
+                        this.board.move(currentRow + 1, col, tile(nextOneValue, col));
+                        change = true;
+                    }
+
+                }
+
+                currentRow += 1;
+            }
+            // System.out.println("row: " + row);
+            // printlnForTest();
+        }
+
+        this.score += score;
+        return change;
+    }
+
+    private boolean eastAction() {
+        int bSize = this.board.size();
+        int score = 0;
+        boolean change = false;
+
+        for(int col = 0; col < bSize; col++) {
+
+            int currentRow = bSize - 1;
+            while (currentRow >= 0) {
+                if (tile(currentRow, col) == null) {
+                    int nextOneValue = nextOneIndexForEast(currentRow - 1, col);
+                    if (nextOneValue == -1) break;
+
+                    int nextTwoValue = nextOneIndexForEast(nextOneValue - 1, col);
+
+                    if (nextTwoValue == -1) {
+                        this.board.move(currentRow, col, tile(nextOneValue, col));
+                        change = true;
+                        break;
+                    } else {
+                        if (tile(nextOneValue, col).value() == tile(nextTwoValue, col).value()) {
+                            this.board.move(currentRow, col, tile(nextOneValue, col));
+                            this.board.move(currentRow, col, tile(nextTwoValue, col));
+                            score += tile(currentRow, col).value();
+                            change = true;
+                        } else {
+                            this.board.move(currentRow, col, tile(nextOneValue, col));
+                            this.board.move(currentRow - 1, col, tile(nextTwoValue, col));
+                            change = true;
+                        }
+                    }
+                } else {
+                    int nextOneValue = nextOneIndexForEast(currentRow - 1, col);
+                    if (nextOneValue == -1) break;
+
+                    if (tile(currentRow, col).value() == tile(nextOneValue, col).value()) {
+                        this.board.move(currentRow, col, tile(nextOneValue, col));
+                        score += tile(currentRow, col).value();
+                        change = true;
+                    } else {
+                        this.board.move(currentRow - 1, col, tile(nextOneValue, col));
+                        change = true;
+                    }
+
+                }
+
+                currentRow -= 1;
+            }
+            System.out.println("row: " + col);
+            printlnForTest();
+        }
+
+        this.score += score;
+        return change;
+    }
+
+
+    private int nextOneIndexForNorth(int start, int row) {
+        for(int i = start; i >= 0; i--) {
+            if (tile(row, i) != null) {
+                return i; 
+            }
+        }
+        return -1;
+    }
+
+    private int nextOneIndexForSouth(int start, int row) {
+        for(int i = start; i < this.board.size(); i++) {
+            if (tile(row, i) != null) {
+                return i; 
+            }
+        }
+        return -1;
+    }
+
+    private int nextOneIndexForWest(int start, int col) {
+        for(int i = start; i < this.board.size(); i++) {
+            if (tile(i, col) != null) {
+                return i; 
+            }
+        }
+        return -1;
+    }
+
+    private int nextOneIndexForEast(int start, int col) {
+        for(int i = start; i >= 0; i--) {
+            if (tile(i, col) != null) {
+                return i; 
+            }
+        }
+        return -1;
+    }
+
+
+    // private Board collapseList(Board b, Side) {
+
+    // }
 
     /** Checks if the game is over and sets the gameOver variable
      *  appropriately.
@@ -138,6 +440,13 @@ public class Model extends Observable {
      * */
     public static boolean emptySpaceExists(Board b) {
         // TODO: Fill in this function.
+        for (int i = 0; i < b.size(); i++) {
+            for (int j = 0; j < b.size(); j++) {
+                if (b.tile(i, j) == null) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -148,6 +457,15 @@ public class Model extends Observable {
      */
     public static boolean maxTileExists(Board b) {
         // TODO: Fill in this function.
+        for (int i = 0; i < b.size(); i++) {
+            for (int j = 0; j < b.size(); j++) {
+                if (b.tile(i, j) != null) {
+                    if (b.tile(i, j).value() == MAX_PIECE) {
+                        return true;
+                    }
+                }
+            }
+        }
         return false;
     }
 
@@ -159,6 +477,31 @@ public class Model extends Observable {
      */
     public static boolean atLeastOneMoveExists(Board b) {
         // TODO: Fill in this function.
+        if (emptySpaceExists(b)) return true;
+
+        int[][] direction = {
+            {1, 0},
+            {0, 1},
+            {-1, 0},
+            {0, -1}
+        }; 
+        
+        for (int i = 0; i < b.size(); i++) {
+            for (int j = 0; j < b.size(); j++) {
+                for(int x = 0; x < direction.length; x++) {
+                    if (b.tile(i, j) != null) {
+                        int adjacent_i = i + direction[x][0];
+                        int adjacent_j = j + direction[x][1];
+                        if ((0 <= adjacent_i && adjacent_i < b.size()) && (0 <= adjacent_j && adjacent_j < b.size())) {
+                            if(b.tile(i, j).value() == b.tile(adjacent_i, adjacent_j).value()){
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         return false;
     }
 
@@ -199,5 +542,19 @@ public class Model extends Observable {
     /** Returns hash code of Model’s string. */
     public int hashCode() {
         return toString().hashCode();
+    }
+
+
+    private void printlnForTest() {
+        for(int i = 0; i < this.board.size(); i++) {
+            for(int j = 0; j < this.board.size(); j++) {
+                if (tile(i, j) == null) {
+                    System.out.print("|" + i + " " + j + "  ");
+                } else {
+                    System.out.print("|" + i + " " + j + " " + tile(i, j).value());
+                }
+            }
+            System.out.println("");
+        }
     }
 }
